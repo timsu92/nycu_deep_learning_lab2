@@ -18,7 +18,7 @@ jobs:
       LABNO: ${{ vars.LABNO }}
       STUID: ${{ vars.STUID }}
       NAME: ${{ vars.NAME }}
-      ZIP_NAME: DL_Lab${LABNO}_${STUID}_${NAME}.zip
+      ZIP_NAME: DL_Lab${{ vars.LABNO }}_${{ vars.STUID }}_${{ vars.NAME }}.zip
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
