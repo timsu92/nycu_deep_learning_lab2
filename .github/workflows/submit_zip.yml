@@ -25,13 +25,12 @@ jobs:
       - name: Create empty directories
         run: mkdir -p dataset/oxford-iiit-pet saved_models
 
+      - name: Create zip archive
+        run: zip -r9 ${{ env.ZIP_NAME }}.zip dataset src saved_models requirements.txt
+
       - name: Upload zip archive
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ZIP_NAME }}
-          compression-level: 9
-          path: |
-            dataset
-            src
-            saved_models
-            requirements.txt
+          name: ${{ env.ZIP_NAME }}.zip
+          compression-level: 0
+          path: ${{ env.ZIP_NAME }}.zip
