@@ -18,6 +18,7 @@ jobs:
       LABNO: ${{ vars.LABNO }}
       STUID: ${{ vars.STUID }}
       NAME: ${{ vars.NAME }}
+      ZIP_NAME: DL_Lab${LABNO}_${STUID}_${NAME}.zip
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,7 +34,6 @@ jobs:
 
       - name: Create zip archive from submit.txt list
         run: |
-          ZIP_NAME="DL_Lab${LABNO}_${STUID}_${NAME}.zip"
           echo "Creating zip archive: ${ZIP_NAME}"
 
           if [ ! -f "submit.txt" ]; then
