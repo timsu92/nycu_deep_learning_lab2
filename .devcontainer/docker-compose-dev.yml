@@ -1,0 +1,26 @@
+services:
+  app:
+    environment:
+      - PROJECT_PATH=/project/uv_template
+      - TZ=Asia/Taipei
+    build:
+      context: ..
+      target: dev
+      # secrets:
+      #   - GIT_AUTH_TOKEN
+      args:
+        - PROJECT_PATH=/project/uv_template
+        - TZ=Asia/Taipei
+    volumes:
+      - ..:/project/uv_template:rw,cached
+      - ${UV_CACHE_DIR:-${XDG_CACHE_HOME:-${HOME}/.cache}/uv}:/root/.cache/uv:rw,z
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           capabilities: [gpu]
+
+# secrets:
+#   GIT_AUTH_TOKEN:
+#     environment: GIT_AUTH_TOKEN

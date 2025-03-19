@@ -1,0 +1,11 @@
+[project]
+name = "uv-template"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "timsu92",email = "33785401+timsu92@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+]

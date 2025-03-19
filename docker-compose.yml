@@ -1,0 +1,23 @@
+services:
+  app:
+    environment:
+      - PROJECT_PATH=/project/uv_template
+      - TZ=Asia/Taipei
+    build:
+      context: .
+      target: prod
+      # secrets:
+      #   - GIT_AUTH_TOKEN
+      args:
+        - PROJECT_PATH=/project/uv_template
+        - TZ=Asia/Taipei
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           capabilities: [gpu]
+
+# secrets:
+#   GIT_AUTH_TOKEN:
+#     environment: GIT_AUTH_TOKEN
