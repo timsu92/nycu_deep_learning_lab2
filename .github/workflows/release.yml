@@ -43,7 +43,7 @@ jobs:
 
           # Create empty folders
           mkdir -p dataset/oxford-iiit-pet saved_models
-          zip -r9 "${ZIP_NAME}" -@ -z ${{ github.sha }} < submit.txt
+          zip -r9 "${ZIP_NAME}" -@ < submit.txt
           echo "Zip archive created: ${ZIP_NAME}"
 
       - name: Upload zip archive
