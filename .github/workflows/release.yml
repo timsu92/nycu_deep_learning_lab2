@@ -1,0 +1,49 @@
+name: release zip
+
+on:
+  workflow_run:
+    workflows: ["Update requirements.txt on PR"]
+    types:
+      - completed  # As long as it's completed, we will run this job, no matter success or failure
+
+jobs:
+  zip-artifacts:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'skipped' }}
+    env:
+      LABNO: ${{ vars.LABNO }}
+      STUID: ${{ vars.STUID }}
+      NAME: ${{ vars.NAME }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Validate required variables
+        run: |
+          if [ -z "${LABNO}" ] || [ -z "${STUID}" ] || [ -z "${NAME}" ]; then
+            echo "錯誤：LABNO, STUID, NAME 變數未設定！"
+            exit 1
+          fi
+
+      - name: Create zip archive from submit.txt list
+        run: |
+          ZIP_NAME="DL_Lab${LABNO}_${STUID}_${NAME}.zip"
+          echo "Creating zip archive: ${ZIP_NAME}"
+
+          if [ ! -f "submit.txt" ]; then
+            echo "Error: submit.txt not found!"
+            exit 1
+          fi
+
+          # Create empty folders
+          mkdir -p dataset/oxford-iiit-pet saved_models
+          zip -r9 "${ZIP_NAME}" -@ -z ${{ github.sha }} < submit.txt
+          echo "Zip archive created: ${ZIP_NAME}"
+
+      - name: Upload zip archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_NAME }}
