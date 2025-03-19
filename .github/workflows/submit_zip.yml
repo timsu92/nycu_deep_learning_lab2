@@ -15,22 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'skipped' }}
     env:
-      LABNO: ${{ vars.LABNO }}
-      STUID: ${{ vars.STUID }}
-      NAME: ${{ vars.NAME }}
-      ZIP_NAME: DL_Lab${{ vars.LABNO }}_${{ vars.STUID }}_${{ vars.NAME }}
+      ZIP_NAME: DL_Lab${{ vars.LABNO }}_${{ vars.STUID }}_user
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-
-      - name: Validate required variables
-        run: |
-          if [ -z "${LABNO}" ] || [ -z "${STUID}" ] || [ -z "${NAME}" ]; then
-            echo "Error: LABNO, STUID, NAME aren't set!"
-            exit 1
-          fi
 
       - name: Create empty directories
         run: mkdir -p dataset/oxford-iiit-pet saved_models
@@ -39,6 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_NAME }}
+          compression-level: 9
           path: |
             dataset
             src
