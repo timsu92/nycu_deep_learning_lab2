@@ -18,7 +18,7 @@ jobs:
       LABNO: ${{ vars.LABNO }}
       STUID: ${{ vars.STUID }}
       NAME: ${{ vars.NAME }}
-      ZIP_NAME: DL_Lab${{ vars.LABNO }}_${{ vars.STUID }}_${{ vars.NAME }}.zip
+      ZIP_NAME: DL_Lab${{ vars.LABNO }}_${{ vars.STUID }}_${{ vars.NAME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,26 +28,19 @@ jobs:
       - name: Validate required variables
         run: |
           if [ -z "${LABNO}" ] || [ -z "${STUID}" ] || [ -z "${NAME}" ]; then
-            echo "錯誤：LABNO, STUID, NAME 變數未設定！"
+            echo "Error: LABNO, STUID, NAME aren't set!"
             exit 1
           fi
 
-      - name: Create zip archive from submit.txt list
-        run: |
-          echo "Creating zip archive: ${ZIP_NAME}"
-
-          if [ ! -f "submit.txt" ]; then
-            echo "Error: submit.txt not found!"
-            exit 1
-          fi
-
-          # Create empty folders
-          mkdir -p dataset/oxford-iiit-pet saved_models
-          zip -r9 "${ZIP_NAME}" -@ < submit.txt
-          echo "Zip archive created: ${ZIP_NAME}"
+      - name: Create empty directories
+        run: mkdir -p dataset/oxford-iiit-pet saved_models
 
       - name: Upload zip archive
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_NAME }}
-          path: ${{ env.ZIP_NAME }}
+          path: |
+            dataset
+            src
+            saved_models
+            requirements.txt
