@@ -1,7 +1,7 @@
 services:
   app:
     environment:
-      - PROJECT_PATH=/project/uv_template
+      - PROJECT_PATH=/project/nycu_deep_learning_lab2
       - TZ=Asia/Taipei
     build:
       context: .
@@ -9,14 +9,14 @@ services:
       # secrets:
       #   - GIT_AUTH_TOKEN
       args:
-        - PROJECT_PATH=/project/uv_template
+        - PROJECT_PATH=/project/nycu_deep_learning_lab2
         - TZ=Asia/Taipei
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
 
 # secrets:
 #   GIT_AUTH_TOKEN:
