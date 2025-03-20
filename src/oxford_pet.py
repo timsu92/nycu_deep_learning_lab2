@@ -30,6 +30,8 @@ class OxfordPetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
 
+        if isinstance(idx, slice):
+            return [self[i] for i in range(*idx.indices(len(self)))]
         filename = self.filenames[idx]
         image_path = os.path.join(self.images_directory, filename + ".jpg")
         mask_path = os.path.join(self.masks_directory, filename + ".png")

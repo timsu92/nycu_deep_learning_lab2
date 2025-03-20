@@ -97,4 +97,13 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR ${PROJECT_PATH}
 
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && apt-get install --no-install-recommends -y \
+        # deps for dev dep opencv
+        libgl1 libglib2.0-0 \
+        # deps for dev dep opencv imshow
+        libpng16-16 libsm6 libxaw7 libxcursor1 libxft2 libxkbfile1 libxmu6 libxmuu1 libxrender1 libxt6
+
 CMD ["/bin/sh", "-c", "echo \"Container started\"; trap \"echo Container stopped; exit 0\" 15; exec \"$@\"; while sleep 1 & wait $!; do :; done"]
