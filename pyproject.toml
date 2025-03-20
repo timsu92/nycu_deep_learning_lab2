@@ -10,6 +10,7 @@ requires-python = ">=3.10,<3.13"
 dependencies= [
     "torch>=2.5.1",
     "torchvision>=0.20.1",
+    "tqdm>=4.67.1",
 ]
 
 [tool.uv.sources]
