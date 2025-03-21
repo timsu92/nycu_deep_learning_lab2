@@ -87,8 +87,6 @@ def plot(imgs, row_title=None, **imshow_kwargs):
     w, h = fig.canvas.get_width_height()
     image_from_plot = image_from_plot.reshape((h, w, 4))
 
-    # ARGB -> RGB
-    image_from_plot = image_from_plot[:, :, [1, 2, 3]]
-
-    image_bgr = cv2.cvtColor(image_from_plot, cv2.COLOR_RGB2BGR)
+    # ARGB -> BGR
+    image_bgr = image_from_plot[:, :, [3, 2, 1]]
     return image_bgr
