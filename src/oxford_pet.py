@@ -37,6 +37,9 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         mask_path = os.path.join(self.masks_directory, filename + ".png")
 
         image = tv_tensors.Image(Image.open(image_path))
+        # remove alpha channel
+        if image.shape[0] == 4:
+            image = image[:3, ...]
 
         trimap = np.array(Image.open(mask_path))
         mask = self._preprocess_mask(trimap)
