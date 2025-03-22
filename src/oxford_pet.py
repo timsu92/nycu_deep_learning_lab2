@@ -46,7 +46,7 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         if self.transform is not None:
             sample = self.transform(sample)
 
-        return sample
+        return torch.cat([sample["image"], sample["mask"][None, ...]], dim=0)
 
     @staticmethod
     def _preprocess_mask(mask):
