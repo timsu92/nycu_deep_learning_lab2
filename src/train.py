@@ -121,10 +121,10 @@ if __name__ == "__main__":
     dataset_train = load_dataset(args.data_path, "train")
     dataset_val = load_dataset(args.data_path, "valid")
     dataloader_train = torch.utils.data.DataLoader(
-        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0
+        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=4
     )
     dataloader_val = torch.utils.data.DataLoader(
-        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=0
+        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=4
     )
 
     train(
