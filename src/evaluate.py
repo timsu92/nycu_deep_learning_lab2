@@ -15,4 +15,5 @@ def evaluate(net: nn.Module, data: DataLoader, device: torch.device):
             masks = batch[:, -1:, ...].to(device)
             pred = net(images)
             dice += dice_score(torch.round(torch.sigmoid(pred)), masks)
+    net.train()
     return dice / len(data)
