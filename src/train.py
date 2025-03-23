@@ -13,6 +13,7 @@ from .oxford_pet import load_dataset
 from .util.logging import log, job_progress
 from .models.unet import Unet
 from .models.resnet34_unet import Resnet34Unet
+from .evaluate import evaluate
 
 
 def train(
@@ -22,6 +23,7 @@ def train(
     learning_rate: float,
     device: torch.device,
     dataloader_train: torch.utils.data.DataLoader,
+    dataloader_val: torch.utils.data.DataLoader | None = None,
     checkpoint_read_file: str | None = None,
     checkpoint_save_file: str = "UNet_{epoch}.pt",
     checkpoint_interval: int = 1,
@@ -58,12 +60,13 @@ def train(
     """
     )
 
-    model.train()
     model.to(device)
     progress = job_progress()
     prog_epoch = progress.add_task("Epoch", total=epochs)
     with progress:
         for epoch in range(start_epoch, start_epoch + epochs):
+            model.train()
+            epoch_loss = 0
             batch_epoch = progress.add_task("Batch", total=len(dataloader_train))
             for batch_idx, batch in enumerate(dataloader_train):
                 with torch.set_grad_enabled(True), autocast(device.type):  # 啟用 AMP
@@ -71,9 +74,8 @@ def train(
                     masks = batch[:, -1:, ...].to(device)
                     pred = model(images)
                     loss = criterion(pred, masks)
-                    loss += dice_score(
-                        torch.round(torch.sigmoid(pred)), masks
-                    )  # 使用 torch.sigmoid
+                    loss += dice_score(torch.round(torch.sigmoid(pred)), masks)
+                    epoch_loss += loss.item()
 
                 optimizer.zero_grad()
                 scaler.scale(loss).backward()  # 使用 AMP 梯度縮放
@@ -81,11 +83,16 @@ def train(
                 scaler.update()
                 if batch_idx % 10 == 0:
                     log.info(
-                        f"Train Epoch: {epoch} [{batch_idx * len(images)}/{len(dataloader_train.dataset)} ({100. * batch_idx / len(dataloader_train):.0f}%)]\tLoss: {loss.item():.6f}"
+                        f"Train Epoch: {epoch}/{start_epoch + epochs - 1} [{batch_idx * len(images)}/{len(dataloader_train.dataset)} ({100. * batch_idx / len(dataloader_train):.0f}%)]\tLoss: {loss.item():.6f}"
                     )
                 progress.advance(batch_epoch)
             progress.remove_task(batch_epoch)
-            scheduler.step()  # not yet used
+            log.info(f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}")
+            if dataloader_val:
+                log.info(
+                    f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{evaluate(model, dataloader_val, device)}"
+                )
+            scheduler.step()
             if (
                 len(checkpoint_save_file) > 0
                 and checkpoint_save_file.endswith(".pt")
@@ -166,6 +173,7 @@ if __name__ == "__main__":
         learning_rate=args.learning_rate,
         device=device,
         dataloader_train=dataloader_train,
+        dataloader_val=dataloader_val,
         checkpoint_read_file=args.checkpoint,
         checkpoint_interval=args.checkpoint_interval,
     )
