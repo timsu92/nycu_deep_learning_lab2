@@ -22,6 +22,8 @@
         "2",
         "--batch_size",
         "10",
+        "--checkpoint",
+        "saved_models/UNet_2.pt"
       ],
     },
   ]

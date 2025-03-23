@@ -1,3 +1,4 @@
+# https://zhuanlan.zhihu.com/p/408610877
 import argparse
 from os import path
 
@@ -34,10 +35,17 @@ def train(
 
     # If a checkpoint is provided, load the model and optimizer states
     if checkpoint_read_file:
-        checkpoint = torch.load(checkpoint_read_file)
+        checkpoint = torch.load(
+            checkpoint_read_file, map_location=device, weights_only=True
+        )
         start_epoch = checkpoint["epoch"] + 1
         model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        # 確保 optimizer 的狀態也在正確的裝置上
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(device)
 
     log.info(
         f"""Starting training:
@@ -58,16 +66,15 @@ def train(
         for epoch in range(start_epoch, start_epoch + epochs):
             batch_epoch = progress.add_task("Batch", total=len(dataloader_train))
             for batch_idx, batch in enumerate(dataloader_train):
-                images = batch[:, :-1, ...].to(device)
-                masks = batch[:, -1:, ...].to(device)
-
                 with torch.set_grad_enabled(True), autocast(device.type):  # 啟用 AMP
+                    images = batch[:, :-1, ...].to(device)
+                    masks = batch[:, -1:, ...].to(device)
                     pred = model(images)
                     loss = criterion(pred, masks)
                     loss += dice_score(torch.sigmoid(pred), masks)  # 使用 torch.sigmoid
 
                 optimizer.zero_grad()
-                scaler.scale(loss).backward(retain_graph=False)  # 使用 AMP 梯度縮放
+                scaler.scale(loss).backward()  # 使用 AMP 梯度縮放
                 scaler.step(optimizer)
                 scaler.update()
                 if batch_idx % 10 == 0:
@@ -113,6 +120,18 @@ def get_args():
         default="unet",
         help="model to train",
     )
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        default=None,
+        help="checkpoint file to resume training from",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=1,
+        help="interval for saving checkpoints",
+    )
 
     return parser.parse_args()
 
@@ -145,5 +164,6 @@ if __name__ == "__main__":
         learning_rate=args.learning_rate,
         device=device,
         dataloader_train=dataloader_train,
-        dataloader_val=dataloader_val
+        checkpoint_read_file=args.checkpoint,
+        checkpoint_interval=args.checkpoint_interval,
     )
