@@ -8,7 +8,7 @@ import torch.optim as optim
 from torch.amp.autocast_mode import autocast  # 新增 AMP 支援
 from torch.amp.grad_scaler import GradScaler  # 新增 AMP 支援
 
-from .utils import dice_score
+from .utils import dice_loss
 from .oxford_pet import load_dataset
 from .util.logging import log, job_progress
 from .models.unet import Unet
@@ -74,7 +74,7 @@ def train(
                     masks = batch[:, -1:, ...].to(device)
                     pred = model(images)
                     loss = criterion(pred, masks)
-                    loss += dice_score(torch.round(torch.sigmoid(pred)), masks)
+                    loss += dice_loss(torch.round(torch.sigmoid(pred)), masks)
                     epoch_loss += loss.item()
 
                 optimizer.zero_grad()
