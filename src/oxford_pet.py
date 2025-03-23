@@ -132,10 +132,7 @@ def load_dataset(
         transforms.ToImage(),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(20),
-        transforms.RandomResizedCrop(
-            (572, 572), scale=(0.64, 1)
-        ),  # TODO: what's the input size for ResNet34?
-        transforms.RandomPerspective(0.35, 0.7),
+        transforms.RandomResizedCrop((572, 572), scale=(0.64, 1)),
         transforms.ColorJitter(brightness=0.5, contrast=0.2, saturation=0.4, hue=0.1),
         transforms.ToDtype(torch.float32, scale=True),
     ]
