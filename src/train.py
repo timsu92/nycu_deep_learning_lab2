@@ -71,7 +71,9 @@ def train(
                     masks = batch[:, -1:, ...].to(device)
                     pred = model(images)
                     loss = criterion(pred, masks)
-                    loss += dice_score(torch.sigmoid(pred), masks)  # 使用 torch.sigmoid
+                    loss += dice_score(
+                        torch.round(torch.sigmoid(pred)), masks
+                    )  # 使用 torch.sigmoid
 
                 optimizer.zero_grad()
                 scaler.scale(loss).backward()  # 使用 AMP 梯度縮放
