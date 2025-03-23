@@ -155,17 +155,17 @@ if __name__ == "__main__":
     if args.model == "unet":
         model = Unet(num_classes=1)
     elif args.model == "resnet34_unet":
-        model = Resnet34Unet(num_classes=1)
+        model = Resnet34Unet(in_channels=3)
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
     dataset_train = load_dataset(args.data_path, "train")
     dataset_val = load_dataset(args.data_path, "valid")
     dataloader_train = torch.utils.data.DataLoader(
-        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=4
+        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=6
     )
     dataloader_val = torch.utils.data.DataLoader(
-        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=4
+        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=6
     )
 
     train(
