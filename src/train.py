@@ -4,15 +4,14 @@ from os import path
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tqdm import tqdm
+from torch.amp.autocast_mode import autocast  # 新增 AMP 支援
+from torch.amp.grad_scaler import GradScaler  # 新增 AMP 支援
 
 from .utils import dice_score
 from .oxford_pet import load_dataset
-from .util.logging import log
+from .util.logging import log, job_progress
 from .models.unet import Unet
 from .models.resnet34_unet import Resnet34Unet
-from torch.amp.autocast_mode import autocast  # 新增 AMP 支援
-from torch.amp.grad_scaler import GradScaler  # 新增 AMP 支援
 
 
 def train(
@@ -53,36 +52,48 @@ def train(
 
     model.train()
     model.to(device)
-    for epoch in tqdm(range(start_epoch, start_epoch + epochs), desc="Epoch"):
-        for batch_idx, batch in tqdm(enumerate(dataloader_train), desc="Train batch"):
-            images = batch[:, :-1, ...].to(device)
-            masks = batch[:, -1:, ...].to(device)
+    progress = job_progress()
+    prog_epoch = progress.add_task("Epoch", total=epochs)
+    with progress:
+        for epoch in range(start_epoch, start_epoch + epochs):
+            batch_epoch = progress.add_task("Batch", total=len(dataloader_train))
+            for batch_idx, batch in enumerate(dataloader_train):
+                images = batch[:, :-1, ...].to(device)
+                masks = batch[:, -1:, ...].to(device)
 
-            with torch.set_grad_enabled(True), autocast(device.type):  # 啟用 AMP
-                pred = model(images)
-                loss = criterion(pred, masks)
-                loss += dice_score(torch.sigmoid(pred), masks)  # 使用 torch.sigmoid
+                with torch.set_grad_enabled(True), autocast(device.type):  # 啟用 AMP
+                    pred = model(images)
+                    loss = criterion(pred, masks)
+                    loss += dice_score(torch.sigmoid(pred), masks)  # 使用 torch.sigmoid
 
-            optimizer.zero_grad()
-            scaler.scale(loss).backward(retain_graph=False)  # 使用 AMP 梯度縮放
-            scaler.step(optimizer)
-            scaler.update()
-            if batch_idx % 10 == 0:
-                log.info(
-                    f"Train Epoch: {epoch} [{batch_idx * len(images)}/{len(dataloader_train.dataset)} ({100. * batch_idx / len(dataloader_train):.0f}%)]\tLoss: {loss.item():.6f}"
+                optimizer.zero_grad()
+                scaler.scale(loss).backward(retain_graph=False)  # 使用 AMP 梯度縮放
+                scaler.step(optimizer)
+                scaler.update()
+                if batch_idx % 10 == 0:
+                    log.info(
+                        f"Train Epoch: {epoch} [{batch_idx * len(images)}/{len(dataloader_train.dataset)} ({100. * batch_idx / len(dataloader_train):.0f}%)]\tLoss: {loss.item():.6f}"
+                    )
+                progress.advance(batch_epoch)
+            progress.remove_task(batch_epoch)
+            scheduler.step()  # not yet used
+            if (
+                len(checkpoint_save_file) > 0
+                and checkpoint_save_file.endswith(".pt")
+                and epoch % checkpoint_interval == 0
+            ):
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "loss": loss,
+                    },
+                    f"{path.dirname(__file__)}/../saved_models/"
+                    + checkpoint_save_file.format(epoch=epoch),
                 )
-        scheduler.step()  # not yet used
-        if len(checkpoint_save_file) > 0 and checkpoint_save_file.endswith(".pt") and epoch % checkpoint_interval == 0:
-            torch.save(
-                {
-                    "epoch": epoch,
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "loss": loss,
-                },
-                f"{path.dirname(__file__)}/../saved_models/"
-                + checkpoint_save_file.format(epoch=epoch),
-            )
+            progress.advance(prog_epoch)
+        progress.remove_task(prog_epoch)
 
 
 def get_args():
