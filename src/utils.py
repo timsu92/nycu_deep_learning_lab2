@@ -8,7 +8,7 @@ def dice_score(pred_mask: torch.Tensor, gt_mask: torch.Tensor, epsilon: float = 
     gt_mask = gt_mask.to(torch.uint8)
     dim = (-1, -2, -3)  # CHW
     same = 2 * (pred_mask == gt_mask).sum(dim=dim)
-    whole = 2 * torch.tensor(pred_mask[0].numel())
+    whole = 2 * torch.tensor(pred_mask[0].numel(), device=pred_mask.device)
     whole = whole.expand(pred_mask.size(0))
 
     dice = same / whole
