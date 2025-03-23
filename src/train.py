@@ -23,14 +23,14 @@ def train(
     learning_rate: float,
     device: torch.device,
     dataloader_train: torch.utils.data.DataLoader,
-    dataloader_val: torch.utils.data.DataLoader | None = None,
+    dataloader_val: torch.utils.data.DataLoader,
     checkpoint_read_file: str | None = None,
     checkpoint_save_file: str = "UNet_{epoch}.pt",
     checkpoint_interval: int = 1,
 ):
     # Setup optimizer, loss function, learning rate scheduler...
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+    optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, "max", patience=5)
     criterion = nn.BCEWithLogitsLoss()
     start_epoch = 1
     scaler = GradScaler()  # 使用 AMP 的梯度縮放器
@@ -79,6 +79,8 @@ def train(
 
                 optimizer.zero_grad()
                 scaler.scale(loss).backward()  # 使用 AMP 梯度縮放
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 scaler.step(optimizer)
                 scaler.update()
                 if batch_idx % 10 == 0:
@@ -88,11 +90,11 @@ def train(
                 progress.advance(batch_epoch)
             progress.remove_task(batch_epoch)
             log.info(f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}")
-            if dataloader_val:
-                log.info(
-                    f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{evaluate(model, dataloader_val, device)}"
-                )
-            scheduler.step()
+            val_score = evaluate(model, dataloader_val, device)
+            log.info(
+                f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{val_score}"
+            )
+            scheduler.step(val_score)
             if (
                 len(checkpoint_save_file) > 0
                 and checkpoint_save_file.endswith(".pt")
