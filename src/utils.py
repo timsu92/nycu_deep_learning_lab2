@@ -6,13 +6,14 @@ def dice_score(pred_mask: torch.Tensor, gt_mask: torch.Tensor, epsilon: float = 
     # turn into uint8 for bitwise operations
     pred_mask = pred_mask.to(torch.uint8)
     gt_mask = gt_mask.to(torch.uint8)
-    dim = (-1, -2, -3)
-    inter = 2 * (pred_mask & gt_mask).sum(dim=dim)
-    sets_sum = pred_mask.sum(dim=dim) + gt_mask.sum(dim=dim)
-    sets_sum = torch.where(sets_sum == 0, inter, sets_sum)
+    dim = (-1, -2, -3)  # CHW
+    same = 2 * (pred_mask == gt_mask).sum(dim=dim)
+    whole = 2 * torch.tensor(pred_mask[0].numel())
+    whole = whole.expand(pred_mask.size(0))
 
-    dice = (inter + epsilon) / (sets_sum + epsilon)
+    dice = same / whole
     return dice.mean()
+
 
 # https://github.com/milesial/Pytorch-UNet/blob/master/utils/dice_score.py
 def dice_loss(pred_mask: torch.Tensor, gt_mask: torch.Tensor):
