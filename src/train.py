@@ -29,14 +29,16 @@ def train(
     checkpoint_interval: int = 1,
 ):
     if checkpoint_save_file is None:
-        checkpoint_save_file = "UNet_{epoch}.pt" if isinstance(model, Unet) else "ResNet_{epoch}.pt"
+        checkpoint_save_file = (
+            "UNet_{epoch}.pt" if isinstance(model, Unet) else "ResNet_{epoch}.pt"
+        )
 
     # Setup optimizer, loss function, learning rate scheduler...
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     criterion = nn.BCEWithLogitsLoss()
     start_epoch = 1
-    scaler = GradScaler()  # 使用 AMP 的梯度縮放器
+    scaler = GradScaler(device.type)  # 使用 AMP 的梯度縮放器
 
     # If a checkpoint is provided, load the model and optimizer states
     if checkpoint_read_file:
@@ -92,14 +94,16 @@ def train(
                     )
                 progress.advance(batch_epoch)
             progress.remove_task(batch_epoch)
-            log.info(f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}")
+            log.info(
+                f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}"
+            )
             model.eval()
             val_score = evaluate(model, dataloader_val, device)
             model.train()
             log.info(
                 f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{val_score}"
             )
-            scheduler.step(val_score)
+            scheduler.step()
             if (
                 len(checkpoint_save_file) > 0
                 and checkpoint_save_file.endswith(".pt")
@@ -148,6 +152,12 @@ def get_args():
         default=1,
         help="interval for saving checkpoints",
     )
+    parser.add_argument(
+        "--random-seed",
+        type=int,
+        default=42,
+        help="random seed for reproducibility",
+    )
 
     return parser.parse_args()
 
@@ -156,6 +166,8 @@ if __name__ == "__main__":
     args = get_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Using device {device}")
+
+    torch.manual_seed(args.random_seed)
 
     if args.model == "unet":
         model = Unet(num_classes=1)
@@ -167,10 +179,10 @@ if __name__ == "__main__":
     dataset_train = load_dataset(args.data_path, "train")
     dataset_val = load_dataset(args.data_path, "valid")
     dataloader_train = torch.utils.data.DataLoader(
-        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=6
+        dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=8
     )
     dataloader_val = torch.utils.data.DataLoader(
-        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=6
+        dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=8
     )
 
     train(
