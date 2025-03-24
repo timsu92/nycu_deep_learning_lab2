@@ -11,7 +11,7 @@
       "module": "src.test"
     },
     {
-      "name": "訓練",
+      "name": "訓練 Unet",
       "type": "debugpy",
       "request": "launch",
       "module": "src.train",
@@ -19,11 +19,45 @@
         "--data_path",
         "dataset/oxford-iiit-pet/",
         "--epochs",
-        "2",
+        "10",
         "--batch_size",
         "10",
+        "--model",
+        "unet",
         "--checkpoint",
-        "saved_models/UNet_2.pt"
+        "saved_models/unet/0323 2138 dice score as question/UNet_10.pt"
+      ],
+    },
+    {
+      "name": "訓練 ResNet34-UNet",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.train",
+      "args": [
+        "--data_path",
+        "dataset/oxford-iiit-pet/",
+        "--epochs",
+        "10",
+        "--batch_size",
+        "36",
+        "--model",
+        "resnet34_unet",
+        "--checkpoint",
+        "saved_models/UNet_10.pt"
+      ],
+    },
+    {
+      "name": "推論 Unet",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.inference",
+      "args": [
+        "--batch_size",
+        "10",
+        "--model",
+        "unet",
+        "--checkpoint",
+        "saved_models/unet/0323 2138 dice score as question/UNet_20.pt"
       ],
     },
   ]
