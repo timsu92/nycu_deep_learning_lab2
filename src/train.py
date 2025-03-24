@@ -33,7 +33,7 @@ def train(
 
     # Setup optimizer, loss function, learning rate scheduler...
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, "max", patience=5)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     criterion = nn.BCEWithLogitsLoss()
     start_epoch = 1
     scaler = GradScaler()  # 使用 AMP 的梯度縮放器
