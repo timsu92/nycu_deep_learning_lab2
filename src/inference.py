@@ -79,21 +79,29 @@ if __name__ == "__main__":
                 pred = model(imgs)
                 dice += dice_score(torch.round(torch.sigmoid(pred)), masks)
             gallery.append(
-                [(img, {"boxes": None, "masks": mask}) for img, mask in zip(imgs.cpu(), pred.cpu())]
+                [
+                    (img, {"boxes": None, "masks": mask})
+                    for img, mask in zip(imgs.cpu(), pred.cpu())
+                ]
             )
             progress.advance(prog_epoch)
         progress.remove_task(prog_epoch)
-    gallery = plot(
-        gallery,
-        row_title=np.array(
-            [
-                (f"{i}-{i+batch_size-1} image", f"{i}-{i+batch_size-1} mask")
-                for i in range(1, len(dataset) + 1, batch_size)
-            ]
-        ).flatten(),
-    )
+
+    ### show result
     dice /= len(dataloader)
-    print("dice score:", float(dice))
-    cv2.imshow("", gallery)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    log.info(f"dice score: {float(dice)}")
+
+    log.info("Showing images.")
+    log.info("Press any key to continue or 'q' to quit")
+    for i in range(0, len(gallery), 6):
+        gallery_batch = plot(
+            gallery[i : i + 6],
+            row_title=[
+                f"{j}-{min(j+batch_size-1, len(dataset))}"
+                for j in range(i * batch_size + 1, (i+6) * batch_size + 1, batch_size)
+            ],
+        )
+        cv2.imshow("", gallery_batch)
+        if cv2.waitKey(0) == ord('q'):
+            break
+        cv2.destroyAllWindows()
