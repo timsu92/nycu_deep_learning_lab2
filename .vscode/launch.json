@@ -40,7 +40,7 @@
         "--data_path",
         "dataset/oxford-iiit-pet/",
         "--epochs",
-        "10",
+        "20",
         "--batch_size",
         "36",
         "--model",
