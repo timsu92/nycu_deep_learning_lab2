@@ -3,7 +3,6 @@ import os
 
 import cv2
 import torch
-import numpy as np
 
 from .models.unet import Unet
 from .models.resnet34_unet import Resnet34Unet

@@ -93,7 +93,9 @@ def train(
                 progress.advance(batch_epoch)
             progress.remove_task(batch_epoch)
             log.info(f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}")
+            model.eval()
             val_score = evaluate(model, dataloader_val, device)
+            model.train()
             log.info(
                 f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{val_score}"
             )

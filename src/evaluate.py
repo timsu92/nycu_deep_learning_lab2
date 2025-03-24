@@ -7,7 +7,6 @@ from .utils import dice_score
 
 def evaluate(net: nn.Module, data: DataLoader, device: torch.device):
     with torch.set_grad_enabled(False):
-        net.eval()
         net.to(device)
         dice = 0
         for batch in data:
@@ -15,5 +14,4 @@ def evaluate(net: nn.Module, data: DataLoader, device: torch.device):
             masks = batch[:, -1:, ...].to(device)
             pred = net(images)
             dice += dice_score(torch.round(torch.sigmoid(pred)), masks)
-    net.train()
     return dice / len(data)
