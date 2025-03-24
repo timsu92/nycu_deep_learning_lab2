@@ -74,6 +74,7 @@ def train(
             epoch_loss = 0
             batch_epoch = progress.add_task("Batch", total=len(dataloader_train))
             for batch_idx, batch in enumerate(dataloader_train):
+                optimizer.zero_grad()
                 with torch.set_grad_enabled(True), autocast(device.type):  # 啟用 AMP
                     images = batch[:, :-1, ...].to(device)
                     masks = batch[:, -1:, ...].to(device)
@@ -82,7 +83,6 @@ def train(
                     loss += dice_loss(torch.round(torch.sigmoid(pred)), masks)
                     epoch_loss += loss.item()
 
-                optimizer.zero_grad()
                 scaler.scale(loss).backward()  # 使用 AMP 梯度縮放
                 scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -97,13 +97,13 @@ def train(
             log.info(
                 f"Epoch {epoch}/{start_epoch + epochs - 1} training loss:\t{epoch_loss / len(dataloader_train)}"
             )
+            scheduler.step()
             model.eval()
             val_score = evaluate(model, dataloader_val, device)
             model.train()
             log.info(
                 f"Epoch {epoch}/{start_epoch + epochs - 1} validation dice:\t{val_score}"
             )
-            scheduler.step()
             if (
                 len(checkpoint_save_file) > 0
                 and checkpoint_save_file.endswith(".pt")
