@@ -77,7 +77,8 @@ if __name__ == "__main__":
             masks = data[:, -1:, ...].to(device)
             with torch.no_grad():
                 pred = model(imgs)
-                dice += dice_score(torch.round(torch.sigmoid(pred)), masks)
+                pred = torch.round(torch.sigmoid(pred))
+                dice += dice_score(pred, masks)
             gallery.append(
                 [
                     (img, {"boxes": None, "masks": mask})
