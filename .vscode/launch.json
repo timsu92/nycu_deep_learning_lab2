@@ -19,7 +19,7 @@
         "--data_path",
         "dataset/oxford-iiit-pet/",
         "--epochs",
-        "10",
+        "20",
         "--batch_size",
         "10",
         "--model",
@@ -27,6 +27,9 @@
         "--checkpoint",
         "saved_models/unet/0323 2138 dice score as question/UNet_10.pt"
       ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "0"
+      }
     },
     {
       "name": "訓練 ResNet34-UNet",
@@ -45,6 +48,9 @@
         "--checkpoint",
         "saved_models/UNet_10.pt"
       ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "1"
+      }
     },
     {
       "name": "推論 Unet",
@@ -59,6 +65,9 @@
         "--checkpoint",
         "saved_models/unet/0323 2138 dice score as question/UNet_20.pt"
       ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "0"
+      }
     },
     {
       "name": "推論 ResNet34-UNet",
@@ -73,6 +82,9 @@
         "--checkpoint",
         "saved_models/resnet-unet/0324 1219 first implementation/UNet_20.pt"
       ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "1"
+      }
     },
   ]
 }
