@@ -132,14 +132,14 @@ def load_dataset(
         transforms.ToImage(),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(20),
-        transforms.RandomResizedCrop((572, 572), scale=(0.64, 1)),
+        transforms.RandomResizedCrop((256, 256), scale=(0.64, 1)),
         transforms.ColorJitter(brightness=0.5, contrast=0.2, saturation=0.4, hue=0.1),
         transforms.ToDtype(torch.float32, scale=True),
     ]
 
     transform_test = [
         transforms.ToImage(),
-        transforms.Resize((572, 572)),
+        transforms.Resize((256, 256)),
         transforms.ToDtype(torch.float32, scale=True),
     ]
 
