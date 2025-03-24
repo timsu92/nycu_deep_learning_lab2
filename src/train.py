@@ -25,9 +25,12 @@ def train(
     dataloader_train: torch.utils.data.DataLoader,
     dataloader_val: torch.utils.data.DataLoader,
     checkpoint_read_file: str | None = None,
-    checkpoint_save_file: str = "UNet_{epoch}.pt",
+    checkpoint_save_file: str | None = None,
     checkpoint_interval: int = 1,
 ):
+    if checkpoint_save_file is None:
+        checkpoint_save_file = "UNet_{epoch}.pt" if isinstance(model, Unet) else "ResNet_{epoch}.pt"
+
     # Setup optimizer, loss function, learning rate scheduler...
     optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, "max", patience=5)
