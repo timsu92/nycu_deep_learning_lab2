@@ -33,3 +33,4 @@ jobs:
         with:
           compression-level: 0
           path: ${{ env.ZIP_NAME }}.zip
+          retention-days: 14
