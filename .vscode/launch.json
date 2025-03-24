@@ -60,5 +60,19 @@
         "saved_models/unet/0323 2138 dice score as question/UNet_20.pt"
       ],
     },
+    {
+      "name": "推論 ResNet34-UNet",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.inference",
+      "args": [
+        "--batch_size",
+        "20",
+        "--model",
+        "resnet_unet",
+        "--checkpoint",
+        "saved_models/resnet-unet/0324 1219 first implementation/UNet_20.pt"
+      ],
+    },
   ]
 }

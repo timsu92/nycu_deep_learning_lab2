@@ -63,7 +63,7 @@ if __name__ == "__main__":
     ### data
     dataset = load_dataset(args.data_path)
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=False, num_workers=6
+        dataset, batch_size=batch_size, shuffle=False, num_workers=10
     )
 
     ### inference & dice score
