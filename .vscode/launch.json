@@ -21,7 +21,7 @@
         "--epochs",
         "20",
         "--batch_size",
-        "20",
+        "34",
         "--model",
         "unet",
         "--checkpoint",
@@ -59,11 +59,11 @@
       "module": "src.inference",
       "args": [
         "--batch_size",
-        "10",
+        "34",
         "--model",
         "unet",
         "--checkpoint",
-        "saved_models/unet/0323 2138 dice score as question/UNet_20.pt"
+        "saved_models/unet/0324 2259 use CosineAnnealingLR(0.91211)/UNet_20.pt"
       ],
       "env": {
         "CUDA_VISIBLE_DEVICES": "0"
@@ -76,11 +76,11 @@
       "module": "src.inference",
       "args": [
         "--batch_size",
-        "20",
+        "72",
         "--model",
         "resnet_unet",
         "--checkpoint",
-        "saved_models/resnet-unet/0324 1219 first implementation/UNet_20.pt"
+        "saved_models/resnet-unet/0324 2259 use CosineAnnealingLR(0.8800)/ResNet_20.pt"
       ],
       "env": {
         "CUDA_VISIBLE_DEVICES": "1"

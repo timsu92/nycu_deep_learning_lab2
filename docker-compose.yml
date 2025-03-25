@@ -11,7 +11,7 @@ services:
       args:
         - PROJECT_PATH=/project/nycu_deep_learning_lab2
         - TZ=Asia/Taipei
-    shm_size: 6G
+    shm_size: 8G
     deploy:
       resources:
         reservations:
