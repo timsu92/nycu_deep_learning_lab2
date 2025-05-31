@@ -1,45 +1,52 @@
-# Tempelate for a Python uv Project
+# 專案介紹
 
-This is a template for a Python uv project. It is configured to use cuda 12.2.2, python >=3.10, and ubuntu 22.04. Coding with devcontainers is supported.
+本專案實作了兩種語義分割模型：UNet 與 ResNet34+UNet，使用 PyTorch 框架，並以 Oxford-IIIT Pet 資料集為例進行訓練與評估。
+主要目標是對圖片進行精確的物件分割，區分前景與背景，並利用多種影像增強與訓練技巧提升模型效能，同時採用自動混合精度（AMP）來加速訓練並節省 VRAM。
 
-## Features
+# 主要功能與架構
 
-- Python >=3.10
-- uv latest
-- CUDA 12.2.2
-- Ubuntu 22.04
-- Git, vim, wget, curl
-- Timezone in Asia/Taipei
+* **訓練（train.py）**
+  執行模型訓練流程，支援指定模型、批次大小、訓練輪數等參數。
+  使用 RMSprop 優化器、CosineAnnealingLR 學習率調整器與 BCEWithLogitsLoss 與 Dice Loss 結合的損失函數。
+  透過 AMP 進行自動混合精度加速，減少記憶體佔用並提升訓練速度。
 
-## Changes before using
+* **推論（inference.py）**
+  載入訓練好的模型檢查點，對測試資料進行推論並計算 Dice score。
+  並以視覺化方式顯示結果圖片，帶有分割遮罩。支援批次大小調整與逐批觀看功能。
 
-Before using this template, you may want to change the project path in these files:
-- [docker-compose.yml line 4](./docker-compose.yml#L4)
-- [docker-compose.yml line 12](./docker-compose.yml#L12)
-- [.devcontainer/docker-compose-dev.yml line 4](./.devcontainer/docker-compose-dev.yml#L4)
-- [.devcontainer/docker-compose-dev.yml line 12](./.devcontainer/docker-compose-dev.yml#L12)
+* **評估（evaluate.py）**
+  提供計算整體資料集 Dice score 的功能，專注於模型效能評估。
 
-...and you may want to change the project name:
-- [pyproject.toml line 2](./pyproject.toml#L2)
+# 執行指令範例
 
-...and you may want to change the Python version:
-- [pyproject.toml](./pyproject.toml#L9)
+```bash
+# 安裝依賴 (請依 CUDA 版本調整)
+uv sync --frozen
 
-...and you may want to change uv's version:
-- [.github/workflows/requirements.txt.yml line 30](./.github/workflows/requirements.txt.yml#L30)
+# UNet 訓練
+python3 -m src.train --data_path dataset/oxford-iiit-pet/ --epochs 20 --batch_size 34 --model unet --random-seed 42
 
-## Usage
+# UNet 推論與驗證
+python3 -m src.inference --batch_size 34 --model unet --checkpoint saved_models/UNet_20.pt
 
-### Using VSCode for development
+# ResNet34-UNet 訓練
+python3 -m src.train --data_path dataset/oxford-iiit-pet/ --epochs 20 --batch_size 72 --model resnet34_unet --random-seed 100
 
-1. Install [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
-2. Open this project in VSCode.
-3. Click the `Reopen in Container` button.
-
-### Build and run for production
-
-Just run:
-
-```sh
-docker compose up --build
+# ResNet34-UNet 推論與驗證
+python3 -m src.inference --batch_size 72 --model resnet34_unet --checkpoint saved_models/ResNet_20.pt
 ```
+
+# 模型架構說明
+
+* **UNet (`unet.py`, `libUnet.py`)**
+  完整的 UNet 結構，包括：
+
+  * DoubleConv：兩層卷積＋BatchNorm＋ReLU
+  * Down：最大池化後接 DoubleConv
+  * Up：跳接(skip connection)與上採樣結合
+  * Out：最後的分類卷積層
+    原始設計為單通道輸入，因應 RGB 圖片改為 3 通道。
+
+* **ResNet34 + UNet (`resnet34_unet.py`, `libResnet34_unet.py`)**
+  結合 ResNet34 作為編碼器，UNet 解碼器負責還原空間資訊。
+  編碼器採用 ResNet34 除去最後平均池化層的結構，解碼器則自訂五個解碼區塊，並連接三個編碼器的跳接層（256、128、64 通道）。
